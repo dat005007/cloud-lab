@@ -84,3 +84,6 @@ app.delete('/api/students/:id', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 Server đang chạy tại Port: ${PORT}`);
 });
+app.get('/api/hello', (req, res) => {
+    res.status(200).json({ message: "Hello từ Backend đang chạy trong Docker Container!" });
+});
