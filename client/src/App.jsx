@@ -1,111 +1,152 @@
-import { useState, useEffect } from 'react'
-import './App.css'
+import { useState, useEffect } from 'react';
+import './App.css';
 
 function App() {
-  const [students, setStudents] = useState([]) 
-  const [formData, setFormData] = useState({ 
-    studentId: '',
-    name: '',
-    email: ''
-  })
+  // ==========================================
+  // 1. KHAI BÁO CÁC STATE (Trạng thái) Ở ĐÂY
+  // ==========================================
+  const [students, setStudents] = useState([]);
+  const [formData, setFormData] = useState({ studentId: '', name: '', email: '' });
+  const [editingId, setEditingId] = useState(null); // Thêm state này để biết đang sửa sinh viên nào
 
   const API_URL = 'https://solid-invention-wr5vvjpj9j46cr79-5000.app.github.dev/api/students';
 
-  // Fetch danh sách sinh viên
+  // ==========================================
+  // 2. KHAI BÁO CÁC HÀM XỬ LÝ Ở ĐÂY
+  // ==========================================
+  
+  // Hàm lấy danh sách sinh viên (GET)
+  const fetchStudents = async () => {
+    try {
+      const res = await fetch(API_URL);
+      const data = await res.json();
+      setStudents(data);
+    } catch (err) {
+      console.error("Lỗi tải dữ liệu:", err);
+    }
+  };
+
   useEffect(() => {
-    fetch(API_URL)
-      .then(res => res.json())
-      .then(data => setStudents(data))
-      .catch(err => console.error(err))
-  }, [])
+    fetchStudents();
+  }, []);
 
-  const handleInputChange = (e) => {
+  // Hàm khi bấm nút "Sửa" trên một dòng sinh viên
+  const handleEdit = (student) => {
+    setEditingId(student._id); // Lưu lại ID đang sửa
     setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
-  }
+      studentId: student.studentId,
+      name: student.name,
+      email: student.email
+    });
+  };
 
-  // Thêm sinh viên (POST)
+  // Hàm xử lý Submit form (Thêm mới hoặc Cập nhật)
   const handleSubmit = async (e) => {
-    e.preventDefault() 
+    e.preventDefault();
     try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
-      if (response.ok) {
-        const newStudent = await response.json()
-        setStudents([...students, newStudent]) 
-        setFormData({ studentId: '', name: '', email: '' }) 
-      }
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
-  // MỚI THÊM: Hàm xử lý Xóa sinh viên (DELETE)
-  const handleDelete = async (id) => {
-    // Hiện hộp thoại xác nhận trước khi xóa
-    if (!window.confirm("Bạn có chắc chắn muốn xóa sinh viên này?")) return;
-
-    try {
-      // Gọi API với phương thức DELETE
-      const response = await fetch(`${API_URL}/${id}`, {
-        method: 'DELETE'
-      });
-
-      if (response.ok) {
-        // Cập nhật lại giao diện: Lọc bỏ sinh viên có id vừa xóa
-        setStudents(students.filter(student => student._id !== id));
+      if (editingId) {
+        // Nếu có editingId -> Gọi API PUT (Cập nhật)
+        await fetch(`${API_URL}/${editingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        setEditingId(null); // Reset lại trạng thái sau khi sửa xong
       } else {
-        console.error('Không thể xóa sinh viên');
+        // Nếu không có -> Gọi API POST (Thêm mới)
+        await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
       }
-    } catch (error) {
-      console.error('Lỗi khi xóa:', error);
+
+      // Xóa trắng form và tải lại danh sách
+      setFormData({ studentId: '', name: '', email: '' });
+      fetchStudents();
+    } catch (err) {
+      console.error("Lỗi khi lưu:", err);
     }
-  }
+  };
 
+  // Hàm xử lý Xóa (DELETE)
+  const handleDelete = async (id) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa không?")) {
+      try {
+        await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+        fetchStudents(); // Tải lại danh sách
+      } catch (err) {
+        console.error("Lỗi khi xóa:", err);
+      }
+    }
+  };
+
+  // ==========================================
+  // 3. PHẦN GIAO DIỆN (return JSX) Ở DƯỚI CÙNG
+  // ==========================================
   return (
-    <div className="app-container">
-      <h1 className="main-title">Quản Lý Sinh Viên</h1>
+    <div style={{ padding: '20px' }}>
+      <h2>Quản Lý Sinh Viên Bản 2.0</h2>
 
-      <div className="card form-card">
-        <h2>Thêm Sinh Viên Mới</h2>
-        <form onSubmit={handleSubmit}>
-          <input type="text" name="studentId" placeholder="Mã số sinh viên" className="modern-input" value={formData.studentId} onChange={handleInputChange} required />
-          <input type="text" name="name" placeholder="Họ tên" className="modern-input" value={formData.name} onChange={handleInputChange} required />
-          <input type="email" name="email" placeholder="Email" className="modern-input" value={formData.email} onChange={handleInputChange} required />
-          <button type="submit" className="modern-btn">Thêm sinh viên</button>
-        </form>
-      </div>
+      {/* Form Nhập liệu (Dùng chung cho cả Thêm và Sửa) */}
+      <form onSubmit={handleSubmit} style={{ marginBottom: '20px' }}>
+        <input 
+          type="text" 
+          placeholder="Mã SV" 
+          value={formData.studentId} 
+          onChange={(e) => setFormData({...formData, studentId: e.target.value})} 
+          required 
+        />
+        <input 
+          type="text" 
+          placeholder="Họ tên" 
+          value={formData.name} 
+          onChange={(e) => setFormData({...formData, name: e.target.value})} 
+          required 
+        />
+        <input 
+          type="email" 
+          placeholder="Email" 
+          value={formData.email} 
+          onChange={(e) => setFormData({...formData, email: e.target.value})} 
+          required 
+        />
+        <button type="submit">
+          {editingId ? 'Cập nhật' : 'Thêm mới'}
+        </button>
+      </form>
 
-      <div className="card list-card">
-        <h2>Danh Sách Sinh Viên</h2>
-        <div className="student-list">
-          {students.length === 0 ? (
-            <p className="empty-msg">Không có sinh viên nào.</p>
-          ) : (
-            students.map(student => (
-              <div className="student-row" key={student._id}>
-                <span className="st-id">{student.studentId}</span>
-                <span className="st-name">{student.name}</span>
-                <span className="st-email">{student.email}</span>
-                {/* MỚI THÊM: Nút Xóa */}
+      {/* Bảng hiển thị danh sách */}
+      <table border="1" cellPadding="10">
+        <thead>
+          <tr>
+            <th>Mã SV</th>
+            <th>Tên</th>
+            <th>Email</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          {students.map((student) => (
+            <tr key={student._id}>
+              <td>{student.studentId}</td>
+              <td>{student.name}</td>
+              <td>{student.email}</td>
+              <td>
+                <button onClick={() => handleEdit(student)}>Sửa</button>
                 <button 
-                  className="delete-btn" 
-                  onClick={() => handleDelete(student._id)}
+                  onClick={() => handleDelete(student._id)} 
+                  style={{ marginLeft: '5px', backgroundColor: 'red', color: 'white' }}
                 >
                   Xóa
                 </button>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
-  )
+  );
 }
 
 export default App;
