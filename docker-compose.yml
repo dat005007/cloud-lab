@@ -1,0 +1,27 @@
+services:
+  # Câu 81 & 83: Khai báo Backend và ánh xạ Port
+  backend:
+    build: ./mern-demo/mern-demo/server
+    ports:
+      - "5000:5000"
+    # Câu 85: Khai báo trực tiếp biến môi trường (Không dùng env_file nữa)
+    environment:
+      - MONGODB_URI=mongodb+srv://dat12:CAjGce6zygZxKfLy@cluster0.r6tz3cp.mongodb.net/cloud_lab?retryWrites=true&w=majority
+      - PORT=5000
+    networks:
+      - mern-network
+
+  # Câu 82 & 84: Khai báo Frontend và ánh xạ Port
+  frontend:
+    build: ./client
+    ports:
+      - "3000:3000"
+    networks:
+      - mern-network
+    depends_on:
+      - backend
+
+# Khai báo mạng ảo cho 2 service nói chuyện với nhau
+networks:
+  mern-network:
+    driver: bridge

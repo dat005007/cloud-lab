@@ -9,7 +9,6 @@ function App() {
   const [formData, setFormData] = useState({ studentId: '', name: '', email: '' });
   const [editingId, setEditingId] = useState(null); // Thêm state này để biết đang sửa sinh viên nào
 
-  const API_URL = 'https://solid-invention-wr5vvjpj9j46cr79-5000.app.github.dev/api/students';
 
   // ==========================================
   // 2. KHAI BÁO CÁC HÀM XỬ LÝ Ở ĐÂY
