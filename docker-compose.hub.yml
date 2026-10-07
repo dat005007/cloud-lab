@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  backend:
+    image: nguyenquocdat12/mern-backend:1.0
+    container_name: hub-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGODB_URI=mongodb+srv://dat12:cn7IEJqFeYAEKkOm@cluster0.r6tz3cp.mongodb.net/cloud_lab?appName=Cluster0
+
+
+    networks:
+      - hub-network
+
+  frontend:
+    image: nguyenquocdat12/mern-frontend:2.0
+    container_name: hub-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - hub-network
+
+networks:
+  hub-network:
+    driver: bridge
