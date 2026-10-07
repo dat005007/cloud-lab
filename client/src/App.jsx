@@ -18,8 +18,9 @@ function App() {
 //phần này là URL của API trên GitHub Codespaces, nhưng khi chạy trên máy local, bạn cần đổi lại thành URL của server local.
   // const API_URL = 'https://solid-invention-wr5vvjpj9j46cr79-5000.app.github.dev/api/students'; 
   
-  // Khi chạy trên máy local, sử dụng URL này
-  const API_URL = 'http://localhost:5000/api/students';
+  // ĐỌC BIẾN MÔI TRƯỜNG TỪ VITE, NẾU KHÔNG CÓ THÌ DÙNG LOCALHOST
+  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const API_URL = `${baseUrl}/api/students`;
 
 
 

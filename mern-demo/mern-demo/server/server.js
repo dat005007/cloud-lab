@@ -5,9 +5,29 @@ require('dotenv').config({ path: '../.env' });
 
 const app = express();
 
-// Cấu hình CORS
-app.use(cors());
-app.use(express.json()); 
+// Cấu hình CORS linh hoạt cho Production
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://localhost:3000'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(null, true); // Hoặc truyền origin cụ thể
+    }
+  },
+  credentials: true
+}));
+app.use(express.json());
+// Middleware tự tạo để ghi Log HTTP Request (phục vụ Câu 77)
+app.use((req, res, next) => {
+    console.log(`[LOG] ${req.method} ${req.originalUrl}`);
+    next();
+}); 
 
 // Import Model
 const Student = require('./student.model.js'); 
@@ -87,3 +107,4 @@ app.listen(PORT, () => {
 app.get('/api/hello', (req, res) => {
     res.status(200).json({ message: "Hello từ Backend đang chạy trong Docker Container!" });
 });
+app.get('/api/hello', (req, res) => { res.json({ message: "Hello from Backend" }) });

@@ -4,9 +4,9 @@ services:
     build: ./mern-demo/mern-demo/server
     ports:
       - "5000:5000"
-    # Câu 85: Khai báo trực tiếp biến môi trường (Không dùng env_file nữa)
+    # Câu 85: Khai báo trực tiếp biến môi trường
     environment:
-      - MONGODB_URI=mongodb+srv://dat12:CAjGce6zygZxKfLy@cluster0.r6tz3cp.mongodb.net/cloud_lab?retryWrites=true&w=majority
+      - MONGODB_URI=mongodb+srv://dat12:cn7IEJqFeYAEKkOm@cluster0.r6tz3cp.mongodb.net/cloud_lab?appName=Cluster0
       - PORT=5000
     networks:
       - mern-network
