@@ -3,18 +3,17 @@ import './App.css';
 
 function App() {
   // ==========================================
-  // 1. KHAI BÁO CÁC STATE (Trạng thái) Ở ĐÂY
+  // 1. KHAI BÁO CÁC STATE VÀ API URL TƯƠNG ĐỐI
   // ==========================================
   const [students, setStudents] = useState([]);
   const [formData, setFormData] = useState({ studentId: '', name: '', email: '' });
   const [editingId, setEditingId] = useState(null);
 
-  // ĐỌC BIẾN MÔI TRƯỜNG TỪ VITE, NẾU KHÔNG CÓ THÌ DÙNG LOCALHOST
-  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-  const API_URL = `${baseUrl}/api/students`;
+  // Sử dụng đường dẫn tương đối để Nginx Reverse Proxy tự động điều hướng ngầm
+  const API_URL = '/api/students';
 
   // ==========================================
-  // 2. KHAI BÁO CÁC HÀM XỬ LÝ Ở ĐÂY
+  // 2. KHAI BÁO CÁC HÀM XỬ LÝ
   // ==========================================
 
   // Hàm tải danh sách sinh viên
@@ -44,9 +43,9 @@ function App() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
         });
-        setEditingId(null); // Reset lại trạng thái sau khi sửa xong
+        setEditingId(null);
       } else {
-        // Nếu không có -> Gọi API POST (Thêm mới)
+        // Nếu không -> Gọi API POST (Thêm mới)
         await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -64,7 +63,7 @@ function App() {
 
   // Hàm khi bấm nút "Sửa" trên một dòng sinh viên
   const handleEdit = (student) => {
-    setEditingId(student._id); // Lưu lại ID đang sửa
+    setEditingId(student._id);
     setFormData({
       studentId: student.studentId,
       name: student.name,
@@ -77,7 +76,7 @@ function App() {
     if (window.confirm("Bạn có chắc chắn muốn xóa sinh viên này không?")) {
       try {
         await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-        fetchStudents(); // Tải lại danh sách sau khi xóa
+        fetchStudents();
       } catch (err) {
         console.error("Lỗi khi xóa:", err);
       }
@@ -85,13 +84,13 @@ function App() {
   };
 
   // ==========================================
-  // 3. PHẦN GIAO DIỆN (return JSX) Ở DƯỚI CÙNG
+  // 3. PHẦN GIAO DIỆN (return JSX)
   // ==========================================
   return (
     <div style={{ padding: '20px' }}>
-      <h2>Quản Lý Sinh Viên Bản 2.0</h2>
+      <h2>Quản Lý Sinh Viên Phiên bản 2.0 (Nginx Proxy)</h2>
 
-      {/* Form Nhập liệu (Dùng chung cho cả Thêm và Sửa) */}
+      {/* Form Nhập liệu */}
       <form onSubmit={handleSubmit} style={{ marginBottom: '20px' }}>
         <input 
           type="text" 

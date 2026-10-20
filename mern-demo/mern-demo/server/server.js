@@ -1,8 +1,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config({ path: '../.env' }); 
-
+// Chỉ load file .env nếu không phải môi trường Production trên Render
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config({ path: '../.env' });
+}
 const app = express();
 
 // Cấu hình CORS linh hoạt cho Production
@@ -17,13 +19,15 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
       callback(null, true);
     } else {
-      callback(null, true); // Hoặc truyền origin cụ thể
+      callback(null, true);
     }
   },
   credentials: true
 }));
+
 app.use(express.json());
-// Middleware tự tạo để ghi Log HTTP Request (phục vụ Câu 77)
+
+// Middleware tự tạo để ghi Log HTTP Request
 app.use((req, res, next) => {
     console.log(`[LOG] ${req.method} ${req.originalUrl}`);
     next();
@@ -45,10 +49,24 @@ mongoose.connect(URI)
     });
 
 // ==========================================
-// CÁC ĐƯỜNG DẪN API
+// CÁC ĐƯỜNG DẪN API (ĐẶT TRƯỚC APP.LISTEN)
 // ==========================================
 
-// Câu 36. Lấy danh sách sinh viên
+// Endpoint Health Check cho Render Rolling Updates (BẮT BUỘC ĐẶT Ở ĐÂY)
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'UP',
+    timestamp: new Date(),
+    uptime: process.uptime()
+  });
+});
+
+// Endpoint test đơn giản
+app.get('/api/hello', (req, res) => {
+    res.status(200).json({ message: "Hello từ Backend đang chạy trong Docker Container!" });
+});
+
+// Lấy danh sách sinh viên
 app.get('/api/students', async (req, res) => {
     try {
         const students = await Student.find();
@@ -58,7 +76,7 @@ app.get('/api/students', async (req, res) => {
     }
 });
 
-// Câu 37: Thêm sinh viên mới
+// Thêm sinh viên mới
 app.post('/api/students', async (req, res) => {
     try {
         const newStudent = await Student.create(req.body);
@@ -68,7 +86,7 @@ app.post('/api/students', async (req, res) => {
     }
 });
 
-// Câu 38: Cập nhật thông tin sinh viên
+// Cập nhật thông tin sinh viên
 app.put('/api/students/:id', async (req, res) => {
     try {
         const updatedStudent = await Student.findByIdAndUpdate(
@@ -85,7 +103,7 @@ app.put('/api/students/:id', async (req, res) => {
     }
 });
 
-// Câu 39: Xóa sinh viên
+// Xóa sinh viên
 app.delete('/api/students/:id', async (req, res) => {
     try {
         const deletedStudent = await Student.findByIdAndDelete(req.params.id);
@@ -99,12 +117,9 @@ app.delete('/api/students/:id', async (req, res) => {
 });
 
 // ==========================================
-// KHỞI ĐỘNG SERVER (Bắt buộc phải nằm ở cuối file)
+// KHỞI ĐỘNG SERVER (LUÔN NẰM Ở CUỐI CÙNG FILE)
 // ==========================================
 app.listen(PORT, () => {
     console.log(`🚀 Server đang chạy tại Port: ${PORT}`);
+    console.log("=== Testing CI/CD Auto Deploy v2.0 ===");
 });
-app.get('/api/hello', (req, res) => {
-    res.status(200).json({ message: "Hello từ Backend đang chạy trong Docker Container!" });
-});
-app.get('/api/hello', (req, res) => { res.json({ message: "Hello from Backend" }) });
